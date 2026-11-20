@@ -9,6 +9,10 @@ services:
       - key: AI_API_KEY
         sync: false
       - key: AI_MODEL
-        value: gpt-4o-mini
+        value: gemini-3.5-flash-lite
       - key: AI_BASE_URL
-        value: https://api.openai.com/v1
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: AI_INPUT_COST_PER_MILLION
+        value: "0"
+      - key: AI_OUTPUT_COST_PER_MILLION
+        value: "0"

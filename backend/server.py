@@ -45,9 +45,12 @@ def load_dotenv():
         pass
 
 load_dotenv()
-AI_API_KEY = os.getenv("AI_API_KEY") or os.getenv("OPENAI_API_KEY")
-AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
-AI_BASE_URL = os.getenv("AI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+AI_API_KEY = os.getenv("AI_API_KEY")
+AI_MODEL = os.getenv("AI_MODEL", "gemini-3.5-flash-lite")
+AI_BASE_URL = os.getenv(
+    "AI_BASE_URL",
+    "https://generativelanguage.googleapis.com/v1beta/openai"
+).rstrip("/")
 
 def load_db():
     if os.path.exists(DB_FILE):
@@ -64,7 +67,7 @@ def save_db(data):
 
 def analyze_complaint(text):
     if not AI_API_KEY:
-        raise RuntimeError("AI_API_KEY (or OPENAI_API_KEY) is not configured")
+        raise RuntimeError("AI_API_KEY is not configured")
 
     system_prompt = """You are an expert campus complaint routing system.
 Analyze informal complaints in Hinglish, Hindi, Romanised Punjabi, or English.
@@ -152,8 +155,11 @@ Return this exact JSON shape:
     usage = api_result.get("usage") or {}
     input_tokens = int(usage.get("prompt_tokens", 0))
     output_tokens = int(usage.get("completion_tokens", 0))
-    input_cost = float(os.getenv("AI_INPUT_COST_PER_MILLION", "0.15"))
-    output_cost = float(os.getenv("AI_OUTPUT_COST_PER_MILLION", "0.60"))
+    is_gemini_free_tier = "generativelanguage.googleapis.com" in AI_BASE_URL
+    default_input_cost = "0" if is_gemini_free_tier else "0.15"
+    default_output_cost = "0" if is_gemini_free_tier else "0.60"
+    input_cost = float(os.getenv("AI_INPUT_COST_PER_MILLION", default_input_cost))
+    output_cost = float(os.getenv("AI_OUTPUT_COST_PER_MILLION", default_output_cost))
     cost = (input_tokens / 1_000_000 * input_cost) + (output_tokens / 1_000_000 * output_cost)
     if not input_tokens and not output_tokens:
         estimated_tokens = max(1, (len(system_prompt) + len(user_prompt) + len(content)) // 4)

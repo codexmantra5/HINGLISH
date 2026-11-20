@@ -138,12 +138,18 @@ backend/server.py   Optional Python API and local server
 ### Python Local Server with Real AI
 ```bash
 # Windows PowerShell
-$env:AI_API_KEY="your-api-key"
-$env:AI_MODEL="gpt-4o-mini"  # optional
-$env:AI_BASE_URL="https://api.openai.com/v1"  # optional
+$env:AI_API_KEY="your-google-ai-studio-api-key"
+$env:AI_MODEL="gemini-3.5-flash-lite"  # optional
+$env:AI_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai"  # optional
 python backend/server.py
 # Open http://localhost:8000 in your browser
 ```
+
+The demo defaults to Gemini 3.5 Flash-Lite on Google AI Studio's free tier. Create a key at
+https://aistudio.google.com/apikey and store it only in the environment or Render's secret settings.
+Free-tier limits can reject requests when exceeded, and Google may use free-tier inputs and outputs
+to improve its products. Do not submit names, registration numbers, contact details, or confidential
+complaints to this demo.
 
 ---
 
