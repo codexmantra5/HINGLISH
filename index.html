@@ -78,7 +78,7 @@
         <!-- Tab Navigation inside Student Portal -->
         <div class="student-tab-bar flex p-1 rounded-lg text-xs font-medium">
           <button id="student-tab-new" onclick="switchStudentTab('new')" class="px-3.5 py-1.5 rounded-md bg-white shadow-xs font-semibold text-blue-700">Submit Complaint</button>
-          <button id="student-tab-my" onclick="switchStudentTab('my')" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900">My Complaints (<span id="student-my-count">3</span>)</button>
+          <button id="student-tab-my" onclick="switchStudentTab('my')" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900">My Complaints (<span id="student-my-count">0</span>)</button>
           <button id="student-tab-track" onclick="switchStudentTab('track')" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900">Live Ticket Tracker</button>
         </div>
       </div>
@@ -86,22 +86,22 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-white metric-card surface-card p-4 rounded-xl">
           <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Complaints</div>
-          <div id="stat-student-total" class="text-2xl font-bold text-slate-800 mt-1">12</div>
+          <div id="stat-student-total" class="text-2xl font-bold text-slate-800 mt-1">0</div>
           <div class="text-[11px] text-slate-400 mt-0.5">Across Campus</div>
         </div>
         <div class="bg-white metric-card surface-card p-4 rounded-xl">
           <div class="text-xs font-medium text-amber-600 uppercase tracking-wider">Pending Review</div>
-          <div id="stat-student-pending" class="text-2xl font-bold text-amber-600 mt-1">2</div>
+          <div id="stat-student-pending" class="text-2xl font-bold text-amber-600 mt-1">0</div>
           <div class="text-[11px] text-amber-500 mt-0.5">Pending staff review</div>
         </div>
         <div class="bg-white metric-card surface-card p-4 rounded-xl">
           <div class="text-xs font-medium text-blue-600 uppercase tracking-wider">In Progress</div>
-          <div id="stat-student-progress" class="text-2xl font-bold text-blue-600 mt-1">4</div>
+          <div id="stat-student-progress" class="text-2xl font-bold text-blue-600 mt-1">0</div>
           <div class="text-[11px] text-blue-500 mt-0.5">Assigned to Staff</div>
         </div>
         <div class="bg-white metric-card surface-card p-4 rounded-xl">
           <div class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Resolved</div>
-          <div id="stat-student-resolved" class="text-2xl font-bold text-emerald-600 mt-1">6</div>
+          <div id="stat-student-resolved" class="text-2xl font-bold text-emerald-600 mt-1">0</div>
           <div class="text-[11px] text-emerald-500 mt-0.5">Closed Successfully</div>
         </div>
       </div>
@@ -340,35 +340,35 @@
           <button onclick="switchStaffDept('Plumbing')" id="dept-tab-Plumbing" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400 dept-active">
             <div class="text-xs font-semibold flex items-center justify-between">
               <span>🔧 Plumbing</span>
-              <span id="badge-dept-Plumbing" class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.2 rounded-full font-bold">2</span>
+              <span id="badge-dept-Plumbing" class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.2 rounded-full font-bold">0</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">Water, Taps, Drainage</div>
           </button>
           <button onclick="switchStaffDept('Electrical')" id="dept-tab-Electrical" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
             <div class="text-xs font-semibold flex items-center justify-between">
               <span>⚡ Electrical</span>
-              <span id="badge-dept-Electrical" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">3</span>
+              <span id="badge-dept-Electrical" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">0</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">Fans, AC, Wiring, Power</div>
           </button>
           <button onclick="switchStaffDept('Wi-Fi / IT')" id="dept-tab-WiFiIT" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
             <div class="text-xs font-semibold flex items-center justify-between">
               <span>📶 Wi-Fi / IT</span>
-              <span id="badge-dept-WiFiIT" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">2</span>
+              <span id="badge-dept-WiFiIT" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">0</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">Network, Routers, Lab PC</div>
           </button>
           <button onclick="switchStaffDept('Mess')" id="dept-tab-Mess" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
             <div class="text-xs font-semibold flex items-center justify-between">
               <span>🍲 Mess</span>
-              <span id="badge-dept-Mess" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">1</span>
+              <span id="badge-dept-Mess" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">0</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">Food Temp, Hygiene, Dining</div>
           </button>
           <button onclick="switchStaffDept('Academic')" id="dept-tab-Academic" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
             <div class="text-xs font-semibold flex items-center justify-between">
               <span>📚 Academic</span>
-              <span id="badge-dept-Academic" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">1</span>
+              <span id="badge-dept-Academic" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">0</span>
             </div>
             <div class="text-[10px] text-slate-400 mt-1">Classrooms, Labs, ERP</div>
           </button>
@@ -427,7 +427,7 @@
         <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold gap-1">
           <button id="admin-subtab-overview" onclick="switchAdminSubtab('overview')" class="px-3 py-1.5 rounded-lg bg-white shadow-xs text-blue-700">Analytics Overview</button>
           <button id="admin-subtab-review" onclick="switchAdminSubtab('review')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">
-            Human Review Queue <span id="admin-review-badge" class="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
+            Human Review Queue             <span id="admin-review-badge" class="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">0</span>
           </button>
           <button id="admin-subtab-locations" onclick="switchAdminSubtab('locations')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Location Directory</button>
           <button id="admin-subtab-benchmark" onclick="switchAdminSubtab('benchmark')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">AI Benchmark Suite</button>
@@ -440,22 +440,22 @@
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <span class="text-[11px] font-semibold text-slate-500 uppercase">Total Logged</span>
-            <div id="kpi-total" class="text-2xl font-bold text-slate-900 mt-1">12</div>
-            <span class="text-[10px] text-emerald-600 font-medium">100% Captured</span>
+            <div id="kpi-total" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+            <span class="text-[10px] text-emerald-600 font-medium">Live ticket count</span>
           </div>
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <span class="text-[11px] font-semibold text-blue-600 uppercase">Direct Auto-Routed</span>
-            <div id="kpi-routed" class="text-2xl font-bold text-blue-700 mt-1">11</div>
-            <span class="text-[10px] text-blue-600 font-medium">91.7% Auto-Accuracy</span>
+            <div id="kpi-routed" class="text-2xl font-bold text-blue-700 mt-1">0</div>
+            <span id="kpi-routed-rate" class="text-[10px] text-blue-600 font-medium">No tickets yet</span>
           </div>
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <span class="text-[11px] font-semibold text-amber-600 uppercase">Human Review Queue</span>
-            <div id="kpi-review" class="text-2xl font-bold text-amber-600 mt-1">1</div>
+            <div id="kpi-review" class="text-2xl font-bold text-amber-600 mt-1">0</div>
             <span class="text-[10px] text-amber-600 font-medium">Uncertainty Guard</span>
           </div>
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
             <span class="text-[11px] font-semibold text-red-600 uppercase">Critical Safety Alerts</span>
-            <div id="kpi-critical" class="text-2xl font-bold text-red-600 mt-1">1</div>
+            <div id="kpi-critical" class="text-2xl font-bold text-red-600 mt-1">0</div>
             <span class="text-[10px] text-red-600 font-medium">Immediate Priority</span>
           </div>
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">

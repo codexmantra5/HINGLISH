@@ -765,6 +765,8 @@
       const inProg = complaints.filter(c => c.status === 'In Progress' || c.status === 'Assigned').length;
       const resolved = complaints.filter(c => c.status === 'Resolved').length;
       const humanReview = complaints.filter(c => c.uncertain && c.status !== 'Resolved').length;
+      const autoRouted = complaints.filter(c => !c.uncertain).length;
+      const critical = complaints.filter(c => c.safetyAlert && c.status !== 'Resolved').length;
       const setText = (id, value) => {
         const element = document.getElementById(id);
         if (element) element.innerText = value;
@@ -776,6 +778,13 @@
       setText('stat-student-progress', inProg);
       setText('stat-student-resolved', resolved);
       setText('student-my-count', complaints.length);
+      setText('kpi-total', complaints.length);
+      setText('kpi-routed', autoRouted);
+      setText('kpi-review', humanReview);
+      setText('kpi-critical', critical);
+      setText('kpi-routed-rate', complaints.length
+        ? `${Math.round(autoRouted / complaints.length * 100)}% auto-routed`
+        : 'No tickets yet');
 
       // Badges
       setText('badge-staff-count', pending + inProg);
