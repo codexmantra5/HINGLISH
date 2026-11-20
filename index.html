@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="campusai-api-url" content="">
+  <title>CampusAI | Campus Service Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700;800&family=Dancing+Script:wght@600;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="js/theme-init.js"></script>
+  <link rel="stylesheet" href="css/styles.css?v=2">
+</head>
+<body class="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 antialiased">
+  <!-- ================= MAIN HEADER & BRANDING ================= -->
+  <header class="bg-[#172554] text-white sticky top-0 z-40 shadow-sm border-b border-blue-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="navbar-grid h-16">
+        <!-- Left: Brand Title & Tagline -->
+        <div class="navbar-brand flex items-center gap-3 cursor-pointer" onclick="switchPortal('student')">
+          <img src="assets/CampusAIlogo.png" alt="CampusAI" class="w-11 h-11 rounded-full object-cover bg-white p-0.5 shadow-md">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="brand-name text-[1.55rem] font-extrabold tracking-tight text-white">CampusAI</span>
+              <span class="hidden sm:inline text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-white/10 text-blue-100 border border-white/10 tracking-wider">Campus Portal</span>
+            </div>
+            <p class="brand-tagline text-xs text-blue-200 font-semibold">Your problem. Our priority...</p>
+          </div>
+        </div>
+        <!-- Center: Portal Switcher (3 Connected Interfaces) -->
+        <nav class="hidden md:flex items-center bg-blue-950/70 p-1 rounded-xl border border-blue-900/60 shadow-inner">
+          <button id="nav-btn-student" onclick="switchPortal('student')" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-150 flex items-center gap-2 nav-item-active">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            Student Portal
+          </button>
+          <button id="nav-btn-staff" onclick="switchPortal('staff')" class="px-4 py-2 rounded-lg text-xs font-semibold text-blue-200 hover:text-white hover:bg-blue-900/50 transition-all duration-150 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Department Staff Portal
+            <span id="badge-staff-count" class="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">5</span>
+          </button>
+        </nav>
+        <div class="navbar-actions flex items-center justify-end gap-2">
+          <button type="button" id="theme-toggle" onclick="toggleTheme()" aria-label="Switch theme" title="Change theme">
+            <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" stroke-width="2"/>
+              <path stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>
+            </svg>
+            <svg id="theme-icon-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+            </svg>
+          </button>
+          <button type="button" id="mobile-menu-button" onclick="toggleMobileNavigation()" class="md:hidden w-10 h-10 rounded-xl border border-blue-700/70 bg-blue-950/50 flex items-center justify-center text-white" aria-label="Open navigation" aria-expanded="false">
+            <svg id="mobile-menu-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <nav id="mobile-navigation" class="md:hidden pb-3">
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="switchPortal('student'); toggleMobileNavigation(false)" class="px-3 py-2.5 rounded-xl text-xs font-semibold text-left bg-white/10 text-white border border-white/10">Student Portal</button>
+          <button type="button" onclick="switchPortal('staff'); toggleMobileNavigation(false)" class="px-3 py-2.5 rounded-xl text-xs font-semibold text-left text-blue-100 border border-blue-800/70">Department Staff</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <!-- ================= MAIN CONTENT WRAPPER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- SECTION A: STUDENT PORTAL -->
+    <section id="portal-student" class="space-y-6">
+      <!-- Student Dashboard Header -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+        <div class="page-title-wrap">
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Student Complaint Portal</h1>
+          <p class="text-xs text-slate-500 mt-1">Lovely Professional University • Campus service desk</p>
+        </div>
+        <!-- Tab Navigation inside Student Portal -->
+        <div class="student-tab-bar flex p-1 rounded-lg text-xs font-medium">
+          <button id="student-tab-new" onclick="switchStudentTab('new')" class="px-3.5 py-1.5 rounded-md bg-white shadow-xs font-semibold text-blue-700">Submit Complaint</button>
+          <button id="student-tab-my" onclick="switchStudentTab('my')" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900">My Complaints (<span id="student-my-count">3</span>)</button>
+          <button id="student-tab-track" onclick="switchStudentTab('track')" class="px-3.5 py-1.5 rounded-md text-slate-600 hover:text-slate-900">Live Ticket Tracker</button>
+        </div>
+      </div>
+      <!-- Quick Metrics Ribbon -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white metric-card surface-card p-4 rounded-xl">
+          <div class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Complaints</div>
+          <div id="stat-student-total" class="text-2xl font-bold text-slate-800 mt-1">12</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Across Campus</div>
+        </div>
+        <div class="bg-white metric-card surface-card p-4 rounded-xl">
+          <div class="text-xs font-medium text-amber-600 uppercase tracking-wider">Pending Review</div>
+          <div id="stat-student-pending" class="text-2xl font-bold text-amber-600 mt-1">2</div>
+          <div class="text-[11px] text-amber-500 mt-0.5">Pending staff review</div>
+        </div>
+        <div class="bg-white metric-card surface-card p-4 rounded-xl">
+          <div class="text-xs font-medium text-blue-600 uppercase tracking-wider">In Progress</div>
+          <div id="stat-student-progress" class="text-2xl font-bold text-blue-600 mt-1">4</div>
+          <div class="text-[11px] text-blue-500 mt-0.5">Assigned to Staff</div>
+        </div>
+        <div class="bg-white metric-card surface-card p-4 rounded-xl">
+          <div class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Resolved</div>
+          <div id="stat-student-resolved" class="text-2xl font-bold text-emerald-600 mt-1">6</div>
+          <div class="text-[11px] text-emerald-500 mt-0.5">Closed Successfully</div>
+        </div>
+      </div>
+      <!-- TAB 1: SUBMIT COMPLAINT FORM -->
+      <div id="view-student-new" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Column: Input Form (7 Cols) -->
+        <div class="lg:col-span-7 bg-white portal-card p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">1</span>
+              Student Problem Details
+            </h2>
+            <span class="text-xs text-slate-400">Step 1 of 2: Details checked in real time</span>
+          </div>
+          <!-- Student Meta (Pre-filled for demo speed) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Student Full Name</label>
+              <input type="text" id="input-student-name" placeholder="Enter your full name" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Registration No. (Optional in Demo)</label>
+              <input type="text" id="input-student-reg" placeholder="Enter registration number" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <!-- Complaint Description Textarea -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-semibold text-slate-700">
+                Complaint Description <span class="text-red-500">*</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <span id="label-detected-lang" class="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                  Detecting language...
+                </span>
+                <span id="char-counter" class="text-[10px] text-slate-400">0 chars</span>
+              </div>
+            </div>
+            <textarea id="input-complaint-text" rows="4" placeholder="Apni problem yahan likhein... Hindi, English, Hinglish ya Romanised Punjabi mein.&#10;E.g.: 'Bhai hostel ke washroom ka tap 3 din se leak kar rha h' ya 'Block 34 di wifi nahi chal rahi'" class="w-full p-3 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans text-slate-800 placeholder-slate-400 custom-scrollbar resize-none transition" oninput="handleComplaintInput()"></textarea>
+            <div class="flex items-center justify-between mt-1 text-[11px] text-slate-500">
+              <span class="italic">💡 Location, facility and urgency are identified as you type.</span>
+              <button type="button" onclick="clearComplaintForm()" class="text-slate-400 hover:text-slate-600 underline">Clear</button>
+            </div>
+          </div>
+          <!-- Photograph Upload (Simulated campus photo) -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Optional Issue Photo / Evidence</label>
+            <div id="dropzone-box" onclick="toggleSimulatedPhoto()" class="border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-3 text-center cursor-pointer transition bg-slate-50/50">
+              <div id="photo-placeholder" class="flex flex-col items-center justify-center py-2">
+                <svg class="w-6 h-6 text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-xs font-medium text-slate-600">Click to attach photo or test sample image</span>
+                <span class="text-[10px] text-slate-400">Simulates mobile camera capture on campus</span>
+              </div>
+              <div id="photo-preview" class="hidden flex items-center justify-between p-2 bg-blue-50 rounded-lg border border-blue-200 text-left">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded bg-blue-200 flex items-center justify-center font-bold text-xs text-blue-700">IMG</div>
+                  <div>
+                    <div class="text-xs font-semibold text-blue-900">campus_issue_evidence.jpg</div>
+                    <div class="text-[10px] text-blue-600">Captured at LPU Hostel • 1.2 MB</div>
+                  </div>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); removePhoto();" class="text-xs text-red-500 hover:text-red-700 font-semibold px-2 py-1">Remove</button>
+              </div>
+            </div>
+          </div>
+          <!-- Submit Button -->
+          <div class="pt-2">
+            <button id="btn-submit-complaint" onclick="submitComplaint()" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs tracking-wide shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Review Details & Submit Complaint</span>
+            </button>
+          </div>
+        </div>
+        <!-- Right Column: Live Complaint Details Card (5 Cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-white portal-card p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Live Complaint Details</h3>
+              </div>
+              <span id="ai-status-tag" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Ready for Input
+              </span>
+            </div>
+            <!-- Department Prediction & Confidence -->
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+              <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="text-slate-500 font-medium">Assigned Department:</span>
+                <span id="preview-dept" class="font-bold text-blue-700 text-sm">Waiting for text...</span>
+              </div>
+              <!-- Confidence Bar -->
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                  <span>Confidence:</span>
+                  <span id="preview-conf-val" class="font-mono font-semibold text-slate-700">0%</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div id="preview-conf-bar" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Priority & Urgency Tag -->
+            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+              <span class="text-slate-500 font-medium">Detected Priority:</span>
+              <div class="flex items-center gap-2">
+                <span id="preview-priority-badge" class="font-bold px-2 py-0.5 rounded text-[11px] bg-slate-200 text-slate-700">Medium</span>
+                <span id="preview-safety-alert" class="hidden text-[10px] font-bold bg-red-600 text-white px-2 py-0.5 rounded animate-pulse">SAFETY HAZARD</span>
+              </div>
+            </div>
+            <!-- Extracted Campus Location Hierarchy -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-slate-700">Extracted Campus Location:</span>
+                <button type="button" onclick="toggleManualLocationModal()" class="text-[11px] text-blue-600 hover:text-blue-800 font-medium underline">
+                  Verify / Edit
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <span class="text-[10px] text-slate-400 block">Campus Area</span>
+                  <span id="loc-area" class="font-semibold text-slate-700">LPU Campus</span>
+                </div>
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <span class="text-[10px] text-slate-400 block">Hostel / Block</span>
+                  <span id="loc-block" class="font-semibold text-slate-700">Not specified</span>
+                </div>
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <span class="text-[10px] text-slate-400 block">Wing / Floor</span>
+                  <span id="loc-wing-floor" class="font-semibold text-slate-700">Not specified</span>
+                </div>
+                <div class="bg-white p-2 rounded border border-slate-200">
+                  <span class="text-[10px] text-slate-400 block">Room / Facility</span>
+                  <span id="loc-room-fac" class="font-semibold text-slate-700">Not specified</span>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-400 italic">Missing details remain "Not specified" instead of being guessed.</p>
+            </div>
+            <!-- Standardized English Output Preview -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-[11px] font-semibold text-slate-600 block mb-1">Standardized Description Preview:</span>
+              <p id="preview-standardized" class="text-xs text-slate-600 italic bg-white p-2.5 rounded border border-slate-200">
+                "Formal facility ticket description will be generated here."
+              </p>
+            </div>
+            <!-- Duplicate Detector Warning (Hidden until detected) -->
+            <div id="duplicate-warning-banner" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-amber-800">
+                <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                <span>Potential Duplicate Issue Detected (<span id="dup-sim-score">88%</span> match)</span>
+              </div>
+              <p class="text-[11px] text-amber-700">
+                A similar active ticket (<span id="dup-ticket-id" class="font-mono font-semibold">LPU-HCR-2026-002</span>) is already logged for this area.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- TAB 2: MY COMPLAINTS VIEW -->
+      <div id="view-student-my" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">My Registered Complaints</h2>
+            <p class="text-xs text-slate-500">Track and view real-time department updates for your tickets</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="filter-my-status" onchange="renderStudentComplaints()" class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50">
+              <option value="ALL">All Statuses</option>
+              <option value="Submitted">Submitted</option>
+              <option value="Under Review">Under Review</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="p-3">Ticket ID</th>
+                <th class="p-3">Department</th>
+                <th class="p-3">Original Complaint (Vernacular)</th>
+                <th class="p-3">Location</th>
+                <th class="p-3">Urgency</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="student-complaints-tbody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- TAB 3: LIVE TICKET TRACKER -->
+      <div id="view-student-track" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div class="max-w-xl mx-auto text-center space-y-3">
+          <h2 class="text-xl font-bold text-slate-800">Track Campus Complaint Status</h2>
+          <p class="text-xs text-slate-500">Enter your 16-character LPU ticket reference ID to see real-time staff progress & notes</p>
+          <div class="flex items-center gap-2">
+            <input type="text" id="track-search-input" value="LPU-HCR-2026-001" placeholder="e.g. LPU-HCR-2026-001" class="flex-1 px-4 py-2 text-xs font-mono rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+            <button onclick="trackSpecificTicket()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-xs">Search Ticket</button>
+          </div>
+          <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400">
+            <span>Quick test:</span>
+            <button onclick="setTrackTicket('LPU-HCR-2026-001')" class="underline hover:text-blue-600">001 (Plumbing)</button> •
+            <button onclick="setTrackTicket('LPU-HCR-2026-002')" class="underline hover:text-blue-600">002 (Wi-Fi)</button> •
+            <button onclick="setTrackTicket('LPU-HCR-2026-005')" class="underline hover:text-red-600 font-semibold">005 (Critical Wire)</button>
+          </div>
+        </div>
+        <!-- Rendered Ticket Tracking Card -->
+        <div id="tracking-card-container" class="max-w-3xl mx-auto border border-slate-200 rounded-xl p-6 bg-slate-50 space-y-6">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+    <!-- SECTION B: DEPARTMENT STAFF PORTAL -->
+    <section id="portal-staff" class="hidden space-y-6">
+      <!-- Staff Header & Department Switcher (6 Primary Departments) -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <h1 class="text-xl font-bold text-slate-900 tracking-tight">Department Operational Portal</h1>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Assigned Facility Queues, Multi-Language Standardized Tickets & Dispatch</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-500 font-medium">Logged in as:</span>
+            <span class="font-semibold bg-blue-100 text-blue-800 px-2.5 py-1 rounded-md">LPU Staff Coordinator</span>
+          </div>
+        </div>
+        <!-- 6 Primary Departments Bar -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-2 border-t border-slate-100">
+          <button onclick="switchStaffDept('Plumbing')" id="dept-tab-Plumbing" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400 dept-active">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>🔧 Plumbing</span>
+              <span id="badge-dept-Plumbing" class="text-[10px] bg-blue-200 text-blue-800 px-1.5 py-0.2 rounded-full font-bold">2</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Water, Taps, Drainage</div>
+          </button>
+          <button onclick="switchStaffDept('Electrical')" id="dept-tab-Electrical" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>⚡ Electrical</span>
+              <span id="badge-dept-Electrical" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">3</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Fans, AC, Wiring, Power</div>
+          </button>
+          <button onclick="switchStaffDept('Wi-Fi / IT')" id="dept-tab-WiFiIT" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>📶 Wi-Fi / IT</span>
+              <span id="badge-dept-WiFiIT" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">2</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Network, Routers, Lab PC</div>
+          </button>
+          <button onclick="switchStaffDept('Mess')" id="dept-tab-Mess" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>🍲 Mess</span>
+              <span id="badge-dept-Mess" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">1</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Food Temp, Hygiene, Dining</div>
+          </button>
+          <button onclick="switchStaffDept('Academic')" id="dept-tab-Academic" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>📚 Academic</span>
+              <span id="badge-dept-Academic" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">1</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Classrooms, Labs, ERP</div>
+          </button>
+          <button onclick="switchStaffDept('Other')" id="dept-tab-Other" class="p-3 rounded-xl border border-slate-200 text-left transition hover:border-blue-400">
+            <div class="text-xs font-semibold flex items-center justify-between">
+              <span>📦 Other</span>
+              <span id="badge-dept-Other" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">0</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">Furniture, Cleaning, Misc</div>
+          </button>
+        </div>
+      </div>
+      <!-- Department Queue Table -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span id="current-dept-title">Plumbing Department Queue</span>
+              <span id="dept-sla-pill" class="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">SLA: 4h Response</span>
+            </h2>
+            <p class="text-xs text-slate-500">Tickets automatically routed via Multilingual Hinglish/Punjabi Natural Language Processor</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <input type="text" id="staff-search-box" oninput="filterStaffQueue()" placeholder="Search issue or location..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs bg-slate-50 focus:bg-white">
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="p-3">Ticket ID</th>
+                <th class="p-3">Issue (Original & Standardized)</th>
+                <th class="p-3">Extracted Location</th>
+                <th class="p-3">Urgency</th>
+                <th class="p-3">Submitted</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Operational Actions</th>
+              </tr>
+            </thead>
+            <tbody id="staff-queue-tbody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <!-- SECTION C: ADMINISTRATION & AI DASHBOARD -->
+    <section id="portal-admin" class="hidden space-y-6">
+      <!-- Admin Header -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 tracking-tight">LPU Campus Administration & AI Monitor</h1>
+          <p class="text-xs text-slate-500 mt-0.5">System-wide complaint telemetry, location hotspot heatmaps & NLP accuracy evaluation</p>
+        </div>
+        <!-- Admin Sub Navigation -->
+        <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold gap-1">
+          <button id="admin-subtab-overview" onclick="switchAdminSubtab('overview')" class="px-3 py-1.5 rounded-lg bg-white shadow-xs text-blue-700">Analytics Overview</button>
+          <button id="admin-subtab-review" onclick="switchAdminSubtab('review')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">
+            Human Review Queue <span id="admin-review-badge" class="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">1</span>
+          </button>
+          <button id="admin-subtab-locations" onclick="switchAdminSubtab('locations')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Location Directory</button>
+          <button id="admin-subtab-benchmark" onclick="switchAdminSubtab('benchmark')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">AI Benchmark Suite</button>
+          <button id="admin-subtab-settings" onclick="switchAdminSubtab('settings')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Routing Settings</button>
+        </div>
+      </div>
+      <!-- SUBTAB 1: ANALYTICS OVERVIEW -->
+      <div id="admin-view-overview" class="space-y-6">
+        <!-- KPI Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-semibold text-slate-500 uppercase">Total Logged</span>
+            <div id="kpi-total" class="text-2xl font-bold text-slate-900 mt-1">12</div>
+            <span class="text-[10px] text-emerald-600 font-medium">100% Captured</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-semibold text-blue-600 uppercase">Direct Auto-Routed</span>
+            <div id="kpi-routed" class="text-2xl font-bold text-blue-700 mt-1">11</div>
+            <span class="text-[10px] text-blue-600 font-medium">91.7% Auto-Accuracy</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-semibold text-amber-600 uppercase">Human Review Queue</span>
+            <div id="kpi-review" class="text-2xl font-bold text-amber-600 mt-1">1</div>
+            <span class="text-[10px] text-amber-600 font-medium">Uncertainty Guard</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-semibold text-red-600 uppercase">Critical Safety Alerts</span>
+            <div id="kpi-critical" class="text-2xl font-bold text-red-600 mt-1">1</div>
+            <span class="text-[10px] text-red-600 font-medium">Immediate Priority</span>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+            <span class="text-[11px] font-semibold text-teal-600 uppercase">Avg Model Latency</span>
+            <div id="kpi-latency" class="text-2xl font-bold text-teal-700 mt-1">-- ms</div>
+            <span class="text-[10px] text-teal-600 font-medium">Measured per live query</span>
+          </div>
+        </div>
+        <!-- Charts Grid (Clean SVG Charts) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Chart 1: Department Distribution (Donut / Bar) -->
+          <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Department Complaint Distribution</h3>
+              <span class="text-[10px] text-slate-400">All 6 Canonical Departments</span>
+            </div>
+            <div id="dept-chart-container" class="space-y-3 pt-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <!-- Chart 2: Campus Location Hotspots -->
+          <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Top LPU Campus Hotspots</h3>
+              <span class="text-[10px] text-slate-400">By Building / Block / Facility</span>
+            </div>
+            <div id="location-chart-container" class="space-y-3 pt-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+        <!-- Master Registry Table -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Master Ticket Registry</h3>
+              <p class="text-xs text-slate-500">Live synchronized database of all campus issues</p>
+            </div>
+            <button onclick="exportComplaintsCSV()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium hover:bg-slate-50 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                <tr>
+                  <th class="p-3">Ticket ID</th>
+                  <th class="p-3">Language</th>
+                  <th class="p-3">Department</th>
+                  <th class="p-3">Location</th>
+                  <th class="p-3">Priority</th>
+                  <th class="p-3">Confidence</th>
+                  <th class="p-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="master-registry-tbody" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- SUBTAB 2: HUMAN REVIEW QUEUE -->
+      <div id="admin-view-review" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              Human Review & Uncertainty Quarantine Queue
+            </h2>
+            <p class="text-xs text-slate-500">Tickets where AI confidence &lt; 78% or ambiguous multi-department keywords exist (Zero Unfounded Routing)</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded bg-amber-100 text-amber-900 border border-amber-300">
+            Human-in-the-Loop Safeguard Active
+          </span>
+        </div>
+        <div id="human-review-cards" class="space-y-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <!-- SUBTAB 3: CAMPUS LOCATION DIRECTORY -->
+      <div id="admin-view-locations" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">LPU Campus Hierarchy Management</h2>
+            <p class="text-xs text-slate-500">Configurable building, block, wing, and facility directory used by NLP entity matcher</p>
+          </div>
+          <button onclick="openAddLocationModal()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">
+            + Add Campus Location
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase">Academic Blocks</h4>
+            <div id="location-list-academic" class="space-y-1 text-xs">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase">Hostel Complexes</h4>
+            <div id="location-list-hostel" class="space-y-1 text-xs">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-2">
+            <h4 class="text-xs font-bold text-slate-700 uppercase">Common & Dining Facilities</h4>
+            <div id="location-list-facilities" class="space-y-1 text-xs">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- SUBTAB 4: AI BENCHMARK SUITE (HACKATHON SPECIAL) -->
+      <div id="admin-view-benchmark" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-teal-500 animate-pulse"></span>
+              <h2 class="text-lg font-bold text-slate-900 tracking-tight">AI Multilingual Evaluation Benchmark Suite</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Live empirical test runner over 20 separate unseen complaints across Hinglish, Romanised Punjabi, Hindi, and English</p>
+          </div>
+          <button id="btn-run-benchmark" onclick="runLiveBenchmark()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2">
+            <svg class="w-4 h-4 text-teal-200 animate-spin hidden" id="bench-spinner" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span>Run Live Benchmark (20 Unseen Test Cases)</span>
+          </button>
+        </div>
+        <!-- Benchmark Scorecard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-center">
+            <span class="text-[11px] font-semibold text-teal-800 uppercase">Department Accuracy</span>
+            <div id="bench-acc-val" class="text-3xl font-extrabold text-teal-700 mt-1">--</div>
+            <span class="text-[10px] text-teal-600 font-medium">Target: &gt; 75.0%</span>
+          </div>
+          <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-center">
+            <span class="text-[11px] font-semibold text-blue-800 uppercase">Location Extraction</span>
+            <div id="bench-loc-val" class="text-3xl font-extrabold text-blue-700 mt-1">--</div>
+            <span class="text-[10px] text-blue-600 font-medium">Entity Precision</span>
+          </div>
+          <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center">
+            <span class="text-[11px] font-semibold text-purple-800 uppercase">Avg Request Latency</span>
+            <div id="bench-lat-val" class="text-3xl font-extrabold text-purple-700 mt-1">-- ms</div>
+            <span class="text-[10px] text-purple-600 font-medium">Measured API latency</span>
+          </div>
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+            <span class="text-[11px] font-semibold text-emerald-800 uppercase">Est. Cost / Complaint</span>
+            <div id="bench-cost-val" class="text-3xl font-extrabold text-emerald-700 mt-1">$--</div>
+            <span class="text-[10px] text-emerald-600 font-medium">Measured provider usage</span>
+          </div>
+        </div>
+        <!-- Language-Wise Accuracy Breakdown -->
+        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+          <h4 class="text-xs font-bold text-slate-700 uppercase">Language-Wise Breakdown</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[11px]">Hinglish</span>
+              <div id="bench-lang-hinglish" class="font-bold text-slate-800 text-base mt-0.5">--</div>
+              <span id="bench-lang-hinglish-count" class="text-[10px] text-slate-500">Awaiting run</span>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[11px]">Romanised Punjabi</span>
+              <div id="bench-lang-punjabi" class="font-bold text-slate-800 text-base mt-0.5">--</div>
+              <span id="bench-lang-punjabi-count" class="text-[10px] text-slate-500">Awaiting run</span>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[11px]">Hindi (Devanagari)</span>
+              <div id="bench-lang-hindi" class="font-bold text-slate-800 text-base mt-0.5">--</div>
+              <span id="bench-lang-hindi-count" class="text-[10px] text-slate-500">Awaiting run</span>
+            </div>
+            <div class="bg-white p-3 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[11px]">English</span>
+              <div id="bench-lang-english" class="font-bold text-slate-800 text-base mt-0.5">--</div>
+              <span id="bench-lang-english-count" class="text-[10px] text-slate-500">Awaiting run</span>
+            </div>
+          </div>
+        </div>
+        <!-- Live Benchmark Stream Table -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+            <span>Evaluation Stream (Unseen Dataset)</span>
+            <span id="bench-count-status" class="text-slate-400 font-mono">20 / 20 Evaluated</span>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 text-[10px] uppercase font-semibold">
+                <tr>
+                  <th class="p-2.5">ID</th>
+                  <th class="p-2.5">Input Text</th>
+                  <th class="p-2.5">Language</th>
+                  <th class="p-2.5">Ground Truth</th>
+                  <th class="p-2.5">AI Prediction</th>
+                  <th class="p-2.5">Latency</th>
+                  <th class="p-2.5 text-center">Result</th>
+                </tr>
+              </thead>
+              <tbody id="bench-tbody" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- SUBTAB 5: SETTINGS & AUDIT -->
+      <div id="admin-view-settings" class="hidden bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-base font-bold text-slate-800">System Thresholds & Routing Policies</h2>
+          <p class="text-xs text-slate-500">Fine-tune the multilingual router engine confidence parameters</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="text-xs font-bold text-slate-700 uppercase">Routing Thresholds</h4>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-medium text-slate-600">Auto-Routing Confidence Threshold</span>
+                <span id="val-conf-threshold" class="font-mono font-bold text-blue-600">75%</span>
+              </div>
+              <input type="range" min="50" max="95" value="75" oninput="updateSettings('conf', this.value)" class="w-full accent-blue-600">
+              <p class="text-[10px] text-slate-400 mt-1">Complaints scoring below this threshold are automatically quarantined to Human Review.</p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-medium text-slate-600">Semantic Duplicate Detection Threshold</span>
+                <span id="val-dup-threshold" class="font-mono font-bold text-blue-600">70%</span>
+              </div>
+              <input type="range" min="50" max="95" value="70" oninput="updateSettings('dup', this.value)" class="w-full accent-blue-600">
+              <p class="text-[10px] text-slate-400 mt-1">Flag potential duplicate tickets when token + location cosine similarity exceeds this value.</p>
+            </div>
+          </div>
+          <div class="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <h4 class="text-xs font-bold text-slate-700 uppercase">System Maintenance</h4>
+            <div class="space-y-2">
+              <button onclick="resetToSampleData()" class="w-full py-2 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 text-left flex items-center justify-between">
+                <span>Reset Database to Official LPU Demo State</span>
+                <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded">Restore</span>
+              </button>
+              <button onclick="clearAllComplaints()" class="w-full py-2 px-3 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-semibold text-red-700 text-left flex items-center justify-between">
+                <span>Wipe All Local Storage Complaints</span>
+                <span class="text-[10px] bg-red-200 px-2 py-0.5 rounded">Danger</span>
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-400 italic">State is saved in browser localStorage so all three portals remain in sync across page reloads.</p>
+          </div>
+        </div>
+        <!-- Audit Trail -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-slate-700 uppercase">System Audit Log</h4>
+          <div id="audit-log-box" class="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-[11px] h-48 overflow-y-auto space-y-1 custom-scrollbar">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+  <!-- ================= FOOTER ================= -->
+  <footer class="bg-white border-t border-slate-200 mt-auto py-4 px-6 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <strong>CampusAI</strong> &bull; Campus Service Portal
+      </div>
+      <div class="flex items-center gap-4 text-slate-400">
+        <span>Lovely Professional University, Phagwara, Punjab</span>
+        <span>•</span>
+        <span>Hinglish • Punjabi • Hindi • English</span>
+      </div>
+    </div>
+  </footer>
+  <!-- ================= MODAL 1: TICKET DETAIL & ACTION MODAL ================= -->
+  <div id="modal-ticket-detail" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar border border-slate-200 shadow-2xl p-6 space-y-5">
+      <div class="flex items-start justify-between pb-3 border-b border-slate-100">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modal-ticket-id" class="font-mono font-bold text-base text-blue-700">LPU-HCR-2026-001</span>
+            <span id="modal-priority-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Medium</span>
+            <span id="modal-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">In Progress</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Submitted by <span id="modal-student-name" class="font-medium text-slate-600">Student</span> on <span id="modal-submitted-time">-</span></p>
+        </div>
+        <button onclick="closeTicketModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <!-- Side-by-Side: Original Vernacular vs Standardized English -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Original Student Voice</span>
+            <span id="modal-lang-badge" class="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200">Hinglish</span>
+          </div>
+          <p id="modal-original-text" class="text-xs text-slate-800 italic bg-white p-2.5 rounded border border-slate-200">
+            "Bhai hostel ke washroom ka tap 3 din se leak kar rha h."
+          </p>
+          <span class="text-[10px] text-slate-400 block">Preserved strictly without modification</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-700">AI Standardized Description</span>
+            <span class="text-[10px] font-semibold text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded">Facility Technical</span>
+          </div>
+          <p id="modal-standardized-text" class="text-xs text-slate-800 bg-white p-2.5 rounded border border-blue-200 font-medium">
+            "The tap in the hostel washroom has been leaking persistently for three days."
+          </p>
+          <span class="text-[10px] text-blue-500 block">Department-ready work order description</span>
+        </div>
+      </div>
+      <!-- Location Hierarchy Display -->
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Extracted Location Hierarchy</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="bg-white p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400 block">Block / Hostel</span>
+            <span id="modal-loc-block" class="font-semibold text-slate-800">BH-1</span>
+          </div>
+          <div class="bg-white p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400 block">Wing</span>
+            <span id="modal-loc-wing" class="font-semibold text-slate-800">C</span>
+          </div>
+          <div class="bg-white p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400 block">Floor</span>
+            <span id="modal-loc-floor" class="font-semibold text-slate-800">4th Floor</span>
+          </div>
+          <div class="bg-white p-2 rounded border border-slate-200">
+            <span class="text-[10px] text-slate-400 block">Room / Facility</span>
+            <span id="modal-loc-room" class="font-semibold text-slate-800">Hostel Washroom</span>
+          </div>
+        </div>
+      </div>
+      <!-- Staff Actions & Status Workflow Controls -->
+      <div class="space-y-3 pt-2 border-t border-slate-100">
+        <span class="text-xs font-bold text-slate-700 block">Operational Status Workflow:</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="updateTicketStatus('Submitted')" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium hover:bg-slate-50">Mark Submitted</button>
+          <button onclick="updateTicketStatus('Under Review')" class="px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-xs font-medium hover:bg-amber-100">Mark Under Review</button>
+          <button onclick="updateTicketStatus('Assigned')" class="px-3 py-1.5 rounded-lg border border-blue-300 bg-blue-50 text-blue-800 text-xs font-medium hover:bg-blue-100">Assign Field Staff</button>
+          <button onclick="updateTicketStatus('In Progress')" class="px-3 py-1.5 rounded-lg border border-indigo-300 bg-indigo-50 text-indigo-800 text-xs font-medium hover:bg-indigo-100">Mark In Progress</button>
+          <button onclick="updateTicketStatus('Resolved')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs">✓ Mark Resolved</button>
+        </div>
+      </div>
+      <!-- Department Reassignment Request -->
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+        <span class="text-xs font-semibold text-slate-700">Need Department Reassignment?</span>
+        <div class="flex items-center gap-2">
+          <select id="modal-reassign-dept" class="px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white">
+            <option value="Plumbing">Plumbing</option>
+            <option value="Electrical">Electrical</option>
+            <option value="Wi-Fi / IT">Wi-Fi / IT</option>
+            <option value="Mess">Mess</option>
+            <option value="Academic">Academic</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="text" id="modal-reassign-reason" placeholder="Mandatory reason for transfer..." class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white">
+          <button onclick="reassignTicketDepartment()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-medium">Reassign</button>
+        </div>
+      </div>
+      <!-- Internal Staff Notes & Timeline -->
+      <div class="space-y-2">
+        <span class="text-xs font-bold text-slate-700 block">Internal Staff Notes & Activity Log:</span>
+        <div id="modal-notes-list" class="max-h-36 overflow-y-auto space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs custom-scrollbar">
+          <!-- Populated by JS -->
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="modal-new-note" placeholder="Add staff update or work order note..." class="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500">
+          <button onclick="addStaffNote()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg">Add Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ================= MODAL 2: MANUAL LOCATION VERIFICATION ================= -->
+  <div id="modal-location-edit" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-bold text-slate-800">Verify / Correct Extracted Location</h3>
+        <button onclick="toggleManualLocationModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <p class="text-xs text-slate-500">Students can override the AI-extracted location tags if any detail was missed or incomplete.</p>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Campus Area</label>
+          <select id="edit-loc-area" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+            <option value="LPU Main Campus">LPU Main Campus</option>
+            <option value="North Campus Area">North Campus Area</option>
+            <option value="South Campus Area">South Campus Area</option>
+            <option value="UniMall & Central Square">UniMall & Central Square</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Building / Block / Hostel</label>
+          <input type="text" id="edit-loc-block" placeholder="e.g. Block 34, BH-1, BH-4, GH-2" class="w-full px-3 py-2 rounded-lg border border-slate-300">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Wing</label>
+            <input type="text" id="edit-loc-wing" placeholder="e.g. Wing C, A Wing" class="w-full px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Floor</label>
+            <input type="text" id="edit-loc-floor" placeholder="e.g. 4th Floor, Ground" class="w-full px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Room Number</label>
+            <input type="text" id="edit-loc-room" placeholder="e.g. 412, 105" class="w-full px-3 py-2 rounded-lg border border-slate-300">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Facility Type</label>
+            <select id="edit-loc-facility" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="Hostel Washroom">Hostel Washroom</option>
+              <option value="Academic Classroom">Academic Classroom</option>
+              <option value="Library">Library</option>
+              <option value="Mess / Dining">Mess / Dining</option>
+              <option value="Laboratory">Laboratory</option>
+              <option value="Corridor / Lobby">Corridor / Lobby</option>
+              <option value="Parking Area">Parking Area</option>
+              <option value="Sports Facility">Sports Facility</option>
+              <option value="General Campus Facility">General Campus Facility</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="toggleManualLocationModal()" class="px-3 py-2 rounded-lg border border-slate-300 text-xs font-medium text-slate-600">Cancel</button>
+        <button onclick="saveManualLocation()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+  <!-- ================= MODAL 3: JUDGE PRESET SELECTION MODAL ================= -->
+  <div id="modal-judge-presets" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div>
+          <h3 class="text-sm font-bold text-slate-800">Hackathon Demonstration Test Suite</h3>
+          <p class="text-xs text-slate-500">Official prompt test cases demonstrating multilingual AI capabilities</p>
+        </div>
+        <button onclick="closeJudgePresetModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+      <div class="space-y-2.5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <div onclick="selectPresetAndClose(1)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-blue-700">Test 1: Hostel Washroom Tap Leakage</span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Plumbing</span>
+          </div>
+          <p class="text-xs text-slate-600 italic mt-1 font-sans">"Bhai hostel ke washroom ka tap 3 din se leak kar rha h."</p>
+          <div class="text-[10px] text-slate-400 mt-1">Expected: Plumbing • Hostel Washroom • Medium Urgency • Hinglish</div>
+        </div>
+        <div onclick="selectPresetAndClose(2)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-blue-700">Test 2: Block 34 Network Outage</span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Wi-Fi / IT</span>
+          </div>
+          <p class="text-xs text-slate-600 italic mt-1 font-sans">"Block 34 di wifi kal raat ton nahi chal rahi."</p>
+          <div class="text-[10px] text-slate-400 mt-1">Expected: Wi-Fi / IT • Block 34 • Medium Urgency • Romanised Punjabi ("ton", "nahi")</div>
+        </div>
+        <div onclick="selectPresetAndClose(3)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-blue-700">Test 3: Room 412 Fan Malfunction</span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Electrical</span>
+          </div>
+          <p class="text-xs text-slate-600 italic mt-1 font-sans">"Room 412 mein fan kaam nahi kar raha."</p>
+          <div class="text-[10px] text-slate-400 mt-1">Expected: Electrical • Room 412 • Medium Urgency • Hinglish</div>
+        </div>
+        <div onclick="selectPresetAndClose(4)" class="p-3 rounded-xl border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span class="text-blue-700">Test 4: Mess Food Temperature</span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Mess</span>
+          </div>
+          <p class="text-xs text-slate-600 italic mt-1 font-sans">"Mess mein khana bahut thanda mil raha hai."</p>
+          <div class="text-[10px] text-slate-400 mt-1">Expected: Mess • Mess Dining Hall • Medium Urgency • Hindi/Hinglish</div>
+        </div>
+        <div onclick="selectPresetAndClose(5)" class="p-3 rounded-xl border border-red-300 bg-red-50/40 hover:bg-red-50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-bold text-red-700">
+            <span>Test 5: Exposed Live Electrical Wire (Critical)</span>
+            <span class="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded animate-pulse">Critical Safety</span>
+          </div>
+          <p class="text-xs text-red-900 italic mt-1 font-sans">"Exposed electrical wire near the hostel washroom entrance. Students can get hurt."</p>
+          <div class="text-[10px] text-red-600 mt-1">Expected: Electrical • Critical Urgency • Safety Alert: YES</div>
+        </div>
+        <div onclick="selectPresetAndClose(6)" class="p-3 rounded-xl border border-amber-300 bg-amber-50/40 hover:bg-amber-50 cursor-pointer transition">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-800">
+            <span>Test 6: Attendance Portal (Ambiguous / Human Review)</span>
+            <span class="text-[10px] bg-amber-500 text-slate-900 px-2 py-0.5 rounded">Human Review</span>
+          </div>
+          <p class="text-xs text-amber-900 italic mt-1 font-sans">"Sir attendance portal open nahi ho raha."</p>
+          <div class="text-[10px] text-amber-700 mt-1">Expected: Ambiguous context (Academic vs Wi-Fi/IT) • Routes to Human Review Queue!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ================= JAVASCRIPT SYSTEM ENGINE ================= -->
+  <script src="js/app.js"></script>
+</body>
+</html>
