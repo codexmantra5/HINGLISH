@@ -1,14 +1,9 @@
 /* =========================================================================
        1. DATABASE & INITIAL SEED DATA
        ========================================================================= */
-    const STORAGE_KEY = 'LPU_HINGLISH_COMPLAINTS_DB_V3';
+    const STORAGE_KEY = 'LPU_HINGLISH_COMPLAINTS_DB_STATIC_V4';
+    const LEGACY_STORAGE_KEY = 'LPU_HINGLISH_COMPLAINTS_DB_V3';
     const SETTINGS_KEY = 'LPU_SETTINGS_V2';
-    const CAMPUSAI_API_URL = (
-      document.querySelector('meta[name="campusai-api-url"]')?.content ||
-      window.CAMPUSAI_API_URL ||
-      ''
-    ).replace(/\/$/, '');
-    const apiUrl = path => `${CAMPUSAI_API_URL}${path}`;
 
     // Canonical Departments (Exactly Six)
     const PRIMARY_DEPARTMENTS = [
@@ -20,62 +15,34 @@
       'Other'
     ];
 
-    // Load Database from LocalStorage or initialize with seed data
-    function getComplaints() {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (!data) {
-        localStorage.setItem(STORAGE_KEY, '[]');
-        return [];
-      }
+    function readComplaintList(key) {
+      const data = localStorage.getItem(key);
+      if (data === null) return null;
       try {
-        return JSON.parse(data);
-      } catch (e) {
-        return [];
+        const complaints = JSON.parse(data);
+        if (!Array.isArray(complaints)) throw new TypeError('Complaint data must be an array.');
+        return complaints;
+      } catch (error) {
+        console.error(`Could not load saved complaints from ${key}:`, error);
+        return null;
       }
+    }
+
+    function getComplaints() {
+      const savedComplaints = readComplaintList(STORAGE_KEY);
+      if (savedComplaints !== null) return savedComplaints;
+
+      const legacyComplaints = readComplaintList(LEGACY_STORAGE_KEY);
+      const complaints = legacyComplaints && legacyComplaints.length
+        ? legacyComplaints
+        : createDemoComplaints();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
+      return complaints;
     }
 
     function saveComplaints(complaints) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
       updateGlobalCounters();
-    }
-
-    async function syncComplaintsFromServer() {
-      try {
-        const response = await fetch(apiUrl('/api/complaints'));
-        if (!response.ok) return;
-        const serverComplaints = await response.json();
-        if (Array.isArray(serverComplaints)) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverComplaints));
-          updateGlobalCounters();
-          renderStudentComplaints();
-          renderLocationDirectory();
-        }
-      } catch (error) {
-        console.warn('Could not sync complaint database:', error);
-      }
-    }
-
-    async function checkAIStatus() {
-      try {
-        const response = await fetch(apiUrl('/api/status'));
-        if (!response.ok) return;
-        const status = await response.json();
-        const statusElement = document.getElementById('ai-status-tag');
-        if (!statusElement) return;
-        if (status.aiConfigured) {
-          statusElement.innerText = `AI Ready (${status.model})`;
-          statusElement.className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
-        } else {
-          statusElement.innerText = 'AI Key Not Configured';
-          statusElement.className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300';
-        }
-      } catch (error) {
-        const statusElement = document.getElementById('ai-status-tag');
-        if (statusElement) {
-          statusElement.innerText = 'AI Server Unavailable';
-          statusElement.className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300';
-        }
-      }
     }
 
     function getSettings() {
@@ -97,7 +64,7 @@
     }
 
     /* =========================================================================
-       2. MULTILINGUAL AI NLP ENGINE (Hinglish, Punjabi, Hindi, English)
+       2. MULTILINGUAL RULE-BASED ENGINE (Hinglish, Punjabi, Hindi, English)
        ========================================================================= */
 
     // 2.1 Language Detector
@@ -397,6 +364,78 @@
       return `Facility maintenance request regarding ${classification.department} issue reported ${locStr}. Standardized for technical dispatch.`;
     }
 
+    function analyzeComplaintLocally(text) {
+      const started = performance.now();
+      const language = detectLanguage(text);
+      const location = extractLocation(text);
+      const classification = classifyDepartment(text);
+      const urgency = detectPriority(text);
+      return {
+        language: language.language,
+        department: classification.department,
+        confidence: classification.confidence,
+        uncertain: classification.uncertain,
+        uncertaintyReason: classification.uncertaintyReason,
+        priority: urgency.priority,
+        safetyAlert: urgency.safetyAlert,
+        location,
+        standardizedText: generateStandardizedDescription(text, classification, location),
+        latencyMs: Math.max(1, Math.round(performance.now() - started)),
+        cost: 0,
+        model: 'Local demo rules'
+      };
+    }
+
+    function createDemoComplaint(id, text, status, submittedAt, overrides = {}) {
+      const analysis = analyzeComplaintLocally(text);
+      const uncertain = overrides.uncertain === undefined ? analysis.uncertain : overrides.uncertain;
+      return {
+        id,
+        studentName: `Demo Student ${id.slice(-3)}`,
+        regNo: `DEMO-${id.slice(-3)}`,
+        originalText: text,
+        standardizedText: analysis.standardizedText,
+        language: analysis.language,
+        department: overrides.department || analysis.department,
+        confidence: overrides.confidence === undefined ? analysis.confidence : overrides.confidence,
+        uncertain,
+        uncertaintyReason: overrides.uncertaintyReason || analysis.uncertaintyReason,
+        priority: overrides.priority || analysis.priority,
+        safetyAlert: overrides.safetyAlert === undefined ? analysis.safetyAlert : overrides.safetyAlert,
+        location: analysis.location,
+        status,
+        submittedAt,
+        latencyMs: analysis.latencyMs,
+        cost: 0,
+        model: 'Local demo rules',
+        staffNotes: [{
+          time: submittedAt,
+          note: overrides.note || `Demo ticket routed to ${overrides.department || analysis.department}.`
+        }]
+      };
+    }
+
+    function createDemoComplaints() {
+      return [
+        createDemoComplaint('LPU-HCR-2026-001', 'Bhai 4th floor hostel washroom ka tap 3 din se leak kar raha hai', 'Under Review', '2026-11-18 09:20'),
+        createDemoComplaint('LPU-HCR-2026-002', 'BH-2 ground floor washroom flush kaam nahi kar raha', 'In Progress', '2026-11-18 10:05'),
+        createDemoComplaint('LPU-HCR-2026-003', 'Room 412 mein fan kaam nahi kar raha', 'In Progress', '2026-11-18 11:15'),
+        createDemoComplaint('LPU-HCR-2026-004', 'Block 34 corridor light is flickering', 'In Progress', '2026-11-18 12:40'),
+        createDemoComplaint('LPU-HCR-2026-005', 'Exposed electrical wire near hostel washroom entrance; students can get hurt', 'In Progress', '2026-11-18 13:10'),
+        createDemoComplaint('LPU-HCR-2026-006', 'Block 34 di wifi kal raat ton nahi chal rahi', 'Resolved', '2026-11-17 16:20'),
+        createDemoComplaint('LPU-HCR-2026-007', 'Library internet keeps disconnecting', 'Resolved', '2026-11-17 14:45'),
+        createDemoComplaint('LPU-HCR-2026-008', 'Mess mein khana bahut thanda mil raha hai', 'Resolved', '2026-11-17 12:30'),
+        createDemoComplaint('LPU-HCR-2026-009', 'Lecture timetable clash for Block 34 room 202', 'Resolved', '2026-11-16 11:00'),
+        createDemoComplaint('LPU-HCR-2026-010', 'Broken bench near central library', 'Resolved', '2026-11-16 10:10'),
+        createDemoComplaint('LPU-HCR-2026-011', 'Dustbin overflow near BH-1 corridor', 'Resolved', '2026-11-15 09:35'),
+        createDemoComplaint('LPU-HCR-2026-012', 'Sir attendance portal open nahi ho raha', 'Submitted', '2026-11-18 14:05', {
+          uncertain: true,
+          confidence: 0.68,
+          uncertaintyReason: 'Attendance portal issues can involve either Academic records or campus IT; staff review is required.'
+        })
+      ];
+    }
+
     // 2.6 Semantic Duplicate Detector
     function detectDuplicates(newText, newDept, newLoc) {
       const complaints = getComplaints();
@@ -567,9 +606,7 @@
       renderStaffQueue();
     }
 
-    // Real-time Complaint Input Analyzer
-    let analysisRequestSequence = 0;
-    let analysisTimer = null;
+    // Real-time rule-based demo analyzer
     function handleComplaintInput() {
       const text = document.getElementById('input-complaint-text').value;
       const charCounter = document.getElementById('char-counter');
@@ -577,8 +614,8 @@
 
       if (!text || text.trim().length === 0) {
         document.getElementById('label-detected-lang').innerText = 'Detecting language...';
-        document.getElementById('ai-status-tag').innerText = 'Ready for Input';
-        document.getElementById('ai-status-tag').className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600';
+        document.getElementById('analysis-status-tag').innerText = 'Ready for Input';
+        document.getElementById('analysis-status-tag').className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600';
         document.getElementById('preview-dept').innerText = 'Waiting for text...';
         document.getElementById('preview-conf-val').innerText = '0%';
         document.getElementById('preview-conf-bar').style.width = '0%';
@@ -590,54 +627,37 @@
         return;
       }
 
-      document.getElementById('ai-status-tag').innerText = 'Analyzing with AI...';
-      document.getElementById('ai-status-tag').className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200';
-      clearTimeout(analysisTimer);
-      const requestId = ++analysisRequestSequence;
-      analysisTimer = setTimeout(async () => {
-        try {
-          const response = await fetch(apiUrl('/api/analyze'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-          });
-          const result = await response.json();
-          if (!response.ok) throw new Error(result.error || 'AI analysis failed');
-          if (requestId !== analysisRequestSequence) return;
+      const result = analyzeComplaintLocally(text);
+      document.getElementById('label-detected-lang').innerText = result.language || 'Unknown';
+      activeExtractedLoc = result.location;
+      document.getElementById('loc-area').innerText = activeExtractedLoc.campus || 'LPU Main Campus';
+      document.getElementById('loc-block').innerText = activeExtractedLoc.block || 'Not specified';
+      document.getElementById('loc-wing-floor').innerText = `${activeExtractedLoc.wing !== 'Not specified' ? 'Wing ' + activeExtractedLoc.wing : 'Wing -'} / ${activeExtractedLoc.floor !== 'Not specified' ? activeExtractedLoc.floor + ' Flr' : 'Floor -'}`;
+      document.getElementById('loc-room-fac').innerText = `${activeExtractedLoc.room !== 'Not specified' ? activeExtractedLoc.room : ''} ${activeExtractedLoc.facility !== 'Not specified' ? activeExtractedLoc.facility : 'General'}`;
+      document.getElementById('preview-dept').innerText = result.department;
+      document.getElementById('preview-conf-val').innerText = `${Math.round(result.confidence * 100)}%`;
+      document.getElementById('preview-conf-bar').style.width = `${Math.round(result.confidence * 100)}%`;
+      document.getElementById('preview-standardized').innerText = `"${result.standardizedText}"`;
+      document.getElementById('analysis-status-tag').innerText = result.uncertain ? 'Human review suggested' : 'Local demo classification';
+      document.getElementById('analysis-status-tag').className = result.uncertain
+        ? 'text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300'
+        : 'text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
 
-          document.getElementById('label-detected-lang').innerText = result.language || 'Unknown';
-          activeExtractedLoc = result.location;
-          document.getElementById('loc-area').innerText = activeExtractedLoc.campus || 'LPU Main Campus';
-          document.getElementById('loc-block').innerText = activeExtractedLoc.block || 'Not specified';
-          document.getElementById('loc-wing-floor').innerText = `${activeExtractedLoc.wing !== 'Not specified' ? 'Wing ' + activeExtractedLoc.wing : 'Wing -'} / ${activeExtractedLoc.floor !== 'Not specified' ? activeExtractedLoc.floor + ' Flr' : 'Floor -'}`;
-          document.getElementById('loc-room-fac').innerText = `${activeExtractedLoc.room !== 'Not specified' ? activeExtractedLoc.room : ''} ${activeExtractedLoc.facility !== 'Not specified' ? activeExtractedLoc.facility : 'General'}`;
-          document.getElementById('preview-dept').innerText = result.department;
-          document.getElementById('preview-conf-val').innerText = `${Math.round(result.confidence * 100)}%`;
-          document.getElementById('preview-conf-bar').style.width = `${Math.round(result.confidence * 100)}%`;
-          document.getElementById('preview-standardized').innerText = `"${result.standardizedText}"`;
-
-          document.getElementById('ai-status-tag').innerText = result.uncertain ? 'Quarantine: Human Review' : 'Direct Route Confident';
-          document.getElementById('ai-status-tag').className = result.uncertain
-            ? 'text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300'
-            : 'text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
-
-          const pBadge = document.getElementById('preview-priority-badge');
-          pBadge.innerText = result.priority;
-          pBadge.className = result.priority === 'Critical'
-            ? 'font-bold px-2 py-0.5 rounded text-[11px] bg-red-600 text-white pulse-danger'
-            : result.priority === 'High'
-              ? 'font-bold px-2 py-0.5 rounded text-[11px] bg-amber-500 text-white'
-              : 'font-bold px-2 py-0.5 rounded text-[11px] bg-blue-100 text-blue-800';
-          document.getElementById('preview-safety-alert').classList.toggle('hidden', !result.safetyAlert);
-          document.getElementById('duplicate-warning-banner').classList.add('hidden');
-        } catch (error) {
-          if (requestId !== analysisRequestSequence) return;
-          const needsApiKey = /API_KEY|not configured/i.test(error.message);
-          document.getElementById('ai-status-tag').innerText = needsApiKey ? 'AI Key Not Configured' : 'AI Server Unavailable';
-          document.getElementById('ai-status-tag').className = 'text-[10px] font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300';
-          showToast(error.message, 'error');
-        }
-      }, 500);
+      const pBadge = document.getElementById('preview-priority-badge');
+      pBadge.innerText = result.priority;
+      pBadge.className = result.priority === 'Critical'
+        ? 'font-bold px-2 py-0.5 rounded text-[11px] bg-red-600 text-white pulse-danger'
+        : result.priority === 'High'
+          ? 'font-bold px-2 py-0.5 rounded text-[11px] bg-amber-500 text-white'
+          : 'font-bold px-2 py-0.5 rounded text-[11px] bg-blue-100 text-blue-800';
+      document.getElementById('preview-safety-alert').classList.toggle('hidden', !result.safetyAlert);
+      const duplicate = detectDuplicates(text, result.department, result.location);
+      const duplicateBanner = document.getElementById('duplicate-warning-banner');
+      duplicateBanner.classList.toggle('hidden', !duplicate.isDuplicate);
+      if (duplicate.isDuplicate) {
+        document.getElementById('dup-sim-score').innerText = `${duplicate.similarity}%`;
+        document.getElementById('dup-ticket-id').innerText = duplicate.matchedTicket.id;
+      }
     }
 
     function showToast(message, type = 'info') {
@@ -668,35 +688,57 @@
       submitButton.classList.add('opacity-75', 'cursor-wait');
       submitButton.innerHTML = '<span class="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span><span>Submitting complaint...</span>';
 
-      (async () => {
-        try {
-          const studentName = document.getElementById('input-student-name').value || 'Anonymous Student';
-          const regNo = document.getElementById('input-student-reg').value || '';
-          const response = await fetch(apiUrl('/api/complaints/submit'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, studentName, regNo })
-          });
-          const newTicket = await response.json();
-          if (!response.ok) throw new Error(newTicket.error || 'Unable to submit complaint');
+      try {
+        const analysis = analyzeComplaintLocally(text);
+        const complaints = getComplaints();
+        const nextNumber = complaints.reduce((max, complaint) => {
+          const match = String(complaint.id).match(/-(\d+)$/);
+          return match ? Math.max(max, Number(match[1])) : max;
+        }, 0) + 1;
+        const submittedAt = new Date().toLocaleString();
+        const studentName = document.getElementById('input-student-name').value || 'Anonymous Student';
+        const regNo = document.getElementById('input-student-reg').value || '';
+        const newTicket = {
+          id: `LPU-HCR-${new Date().getFullYear()}-${String(nextNumber).padStart(3, '0')}`,
+          studentName,
+          regNo,
+          originalText: text,
+          standardizedText: analysis.standardizedText,
+          language: analysis.language,
+          department: analysis.department,
+          confidence: analysis.confidence,
+          uncertain: analysis.uncertain,
+          uncertaintyReason: analysis.uncertaintyReason,
+          priority: analysis.priority,
+          safetyAlert: analysis.safetyAlert,
+          location: analysis.location,
+          status: analysis.uncertain ? 'Under Review' : 'Submitted',
+          submittedAt,
+          latencyMs: analysis.latencyMs,
+          cost: 0,
+          model: analysis.model,
+          staffNotes: [{
+            time: submittedAt,
+            note: `Local demo rules routed this ticket to ${analysis.department}.`
+          }]
+        };
 
-          const complaints = getComplaints();
-          complaints.unshift(newTicket);
-          saveComplaints(complaints);
-          logAudit('NEW TICKET SUBMITTED', `${newTicket.id} -> ${newTicket.department} (${newTicket.priority})`);
-          showToast(`Ticket ${newTicket.id} was created and routed to ${newTicket.department}.`, 'success');
+        complaints.unshift(newTicket);
+        saveComplaints(complaints);
+        logAudit('NEW DEMO TICKET SUBMITTED', `${newTicket.id} -> ${newTicket.department} (${newTicket.priority})`);
+        showToast(`Demo ticket ${newTicket.id} was created and routed to ${newTicket.department}.`, 'success');
 
-          clearComplaintForm();
-          switchStudentTab('track');
-          setTrackTicket(newTicket.id);
-        } catch (error) {
-          showToast(error.message, 'error');
-        } finally {
-          submitButton.disabled = false;
-          submitButton.classList.remove('opacity-75', 'cursor-wait');
-          submitButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Review Details & Submit Complaint</span>';
-        }
-      })();
+        clearComplaintForm();
+        switchStudentTab('track');
+        setTrackTicket(newTicket.id);
+      } catch (error) {
+        console.error('Could not save demo complaint:', error);
+        showToast(`Could not save demo complaint: ${error.message}`, 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.classList.remove('opacity-75', 'cursor-wait');
+        submitButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>Review Details & Submit Complaint</span>';
+      }
     }
 
     function clearComplaintForm() {
@@ -933,7 +975,7 @@
 
       const steps = [
         { label: 'Submitted', desc: 'Complaint registered by student', done: true },
-        { label: 'AI Analyzed', desc: `Classified to ${c.department} (${Math.round(c.confidence*100)}%)`, done: true },
+        { label: 'Classified', desc: `Local rules assigned ${c.department} (${Math.round(c.confidence*100)}%)`, done: true },
         { label: 'Assigned', desc: 'Routed to facility department desk', done: c.status !== 'Submitted' },
         { label: 'In Progress', desc: 'Technician dispatched for campus resolution', done: c.status === 'In Progress' || c.status === 'Resolved' },
         { label: 'Resolved', desc: 'Issue inspected & work order completed', done: c.status === 'Resolved' }
@@ -983,7 +1025,7 @@
             <p class="text-xs text-slate-700 italic">"${c.originalText}"</p>
           </div>
           <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
-            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">AI Standardized Ticket</span>
+            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Standardized Demo Ticket</span>
             <p class="text-xs text-slate-800 font-medium">${c.standardizedText}</p>
           </div>
         </div>
@@ -1309,8 +1351,8 @@
           </div>
 
           <div class="p-3 bg-white rounded-lg border border-amber-200 text-xs space-y-1">
-            <span class="font-bold text-amber-800 block">AI Uncertainty Explanation:</span>
-            <p class="text-slate-600">${c.uncertaintyReason || 'Model confidence is below threshold; requires manual staff disambiguation.'}</p>
+            <span class="font-bold text-amber-800 block">Local-rule uncertainty:</span>
+            <p class="text-slate-600">${c.uncertaintyReason || 'Rule confidence is below threshold; requires manual staff disambiguation.'}</p>
           </div>
 
           <!-- Quick One-Click Assignment Override -->
@@ -1427,14 +1469,15 @@
     }
 
     function resetToSampleData() {
-      if (confirm('Reset database to clean LPU demonstration state?')) {
-        localStorage.removeItem(STORAGE_KEY);
-        getComplaints();
+      if (confirm('Restore the built-in LPU demo complaints? Your current demo tickets will be replaced.')) {
+        const complaints = createDemoComplaints();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
         updateGlobalCounters();
         renderStudentComplaints();
         renderStaffQueue();
         renderAdminDashboard();
-        alert('Database restored to default hackathon demo complaints!');
+        renderHumanReviewQueue();
+        alert('Built-in demo complaints restored.');
       }
     }
 
@@ -1449,11 +1492,11 @@
     }
 
     /* =========================================================================
-       9. AI PERFORMANCE BENCHMARK SUITE (HACKATHON WINNER)
+       9. STATIC RULE-BASED DEMO BENCHMARK
        ========================================================================= */
 
-    // 20 Separate Unseen Evaluation Test Cases (Not Used in Development)
-    const UNSEEN_BENCHMARK_DATASET = [
+    // Built-in samples used by the local demo benchmark.
+    const DEMO_BENCHMARK_DATASET = [
       { id: 'EVAL-01', text: 'Water pipe leak in BH-2 washroom ground floor', lang: 'English', expectedDept: 'Plumbing' },
       { id: 'EVAL-02', text: 'Bhai flush kaam nahi kar raha hostel 3rd floor pe', lang: 'Hinglish', expectedDept: 'Plumbing' },
       { id: 'EVAL-03', text: 'Block 38 di washroom da nalka tut gya peya', lang: 'Romanised Punjabi', expectedDept: 'Plumbing' },
@@ -1479,7 +1522,7 @@
     function renderBenchmarkInitial() {
       const tbody = document.getElementById('bench-tbody');
       tbody.innerHTML = '';
-      UNSEEN_BENCHMARK_DATASET.forEach(item => {
+      DEMO_BENCHMARK_DATASET.forEach(item => {
         const tr = document.createElement('tr');
         tr.id = `bench-row-${item.id}`;
         tr.innerHTML = `
@@ -1495,19 +1538,19 @@
       });
     }
 
-    function runLiveBenchmark() {
+    function runDemoBenchmark() {
       const btn = document.getElementById('btn-run-benchmark');
       const spinner = document.getElementById('bench-spinner');
       btn.disabled = true;
       spinner.classList.remove('hidden');
 
       let correct = 0;
-      let total = UNSEEN_BENCHMARK_DATASET.length;
+      let total = DEMO_BENCHMARK_DATASET.length;
       let totalLatency = 0;
       let totalCost = 0;
       let index = 0;
 
-      async function processNext() {
+      function processNext() {
         if (index >= total) {
           // Finished
           btn.disabled = false;
@@ -1519,21 +1562,15 @@
           document.getElementById('bench-lat-val').innerText = `${avgLat} ms`;
           document.getElementById('bench-cost-val').innerText = `$${avgCost.toFixed(6)}`;
           document.getElementById('kpi-latency').innerText = `${avgLat} ms`;
-          logAudit('BENCHMARK RUN COMPLETED', `Evaluated ${total} unseen complaints. Accuracy: ${finalAcc}%, Latency: ${avgLat}ms, Cost: $${avgCost.toFixed(6)}`);
+          logAudit('DEMO BENCHMARK COMPLETED', `Evaluated ${total} built-in complaints. Accuracy: ${finalAcc}%, Latency: ${avgLat}ms, Cost: $${avgCost.toFixed(6)}`);
           return;
         }
 
-        const item = UNSEEN_BENCHMARK_DATASET[index];
+        const item = DEMO_BENCHMARK_DATASET[index];
         try {
-          const response = await fetch(apiUrl('/api/analyze'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: item.text })
-          });
-          const classResult = await response.json();
-          if (!response.ok) throw new Error(classResult.error || 'AI benchmark request failed');
-          const lat = classResult.latencyMs || 0;
-          const cost = classResult.cost || 0;
+          const classResult = analyzeComplaintLocally(item.text);
+          const lat = classResult.latencyMs;
+          const cost = 0;
           totalLatency += lat;
           totalCost += cost;
 
@@ -1567,10 +1604,10 @@
       processNext();
     }
 
-    function openAiPerformanceBenchmark() {
+    function openDemoBenchmark() {
       switchPortal('admin');
       switchAdminSubtab('benchmark');
-      setTimeout(runLiveBenchmark, 400);
+      setTimeout(runDemoBenchmark, 400);
     }
 
     /* =========================================================================
@@ -1579,11 +1616,9 @@
     window.addEventListener('DOMContentLoaded', () => {
       updateThemeControls();
       getComplaints();
-      syncComplaintsFromServer();
-      checkAIStatus();
       updateGlobalCounters();
       renderStudentComplaints();
       renderLocationDirectory();
       renderBenchmarkInitial();
-      logAudit('SYSTEM BOOT', 'LPU Hinglish Complaint Router initialized. 6 Canonical Departments Loaded.');
+      logAudit('SYSTEM BOOT', 'Static LPU demo initialized with 6 canonical departments.');
     });
